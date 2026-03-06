@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Curso - CDIA - UniSENAI-SC</title>
+
+    <script type="text/javascript">
+        function toggleSelectUC(self) {
+            let isSelected = self.getAttribute('data-selected');
+            let allSelected = document.querySelectorAll('.node-rect[data-selected]');
+            let allHighlighted = document.querySelectorAll('*[data-highlight]');
+            //Limpa seleção anterior
+            for (el of allSelected) {
+                el.removeAttribute('data-selected');
+                highlihtPreRequisitos(el, false);
+                highlightPastConnections(el.id, false);
+                highlightFutureConnections(el.id, false);
+            }
+            for (el of allHighlighted) {
+                el.removeAttribute('data-highlight');
+            }
+            if (!isSelected) {
+                self.setAttribute('data-selected', true);
+                highlihtPreRequisitos(self, true);
+                highlightPastConnections(self.id, true);
+                highlightFutureConnections(self.id, true);
+            }
+        }
+        function highlightPastConnections(id, activeState) {
+            let connections = document.querySelectorAll(`.pre-req[data-fim="${id}"]`)
+            for (connection of connections) {
+                connection.setAttribute('data-highlight', true);
+            }
+        }
+        function highlightFutureConnections(id, activeState) {
+            let connections = document.querySelectorAll(`.pre-req[data-origem="${id}"]`)
+            for (connection of connections) {
+                connection.setAttribute('data-highlight', true);
+            }
+        }
+        function highlihtPreRequisitos(self) {
+            let preRequisitos = self.getAttribute("data-pre-requisito");
+            if (preRequisitos) {
+                let idList = preRequisitos.split(",");
+                for (id of idList) {
+                    let el = document.getElementById(id);
+                    if (el) {
+                        el.setAttribute('data-highlight', true);
+                        highlihtPreRequisitos(el);
+                        highlightPastConnections(el.id);
+                        //highlightFutureConnections(el.id);
+                    }
+                }
+            }
+        }
+        function exibeModal(id_modal) {
+            let modal = document.getElementById(id_modal);
+            if (modal) {
+                modal.style.display = 'block';
+            }
+        }
+        function escondeModal(id_modal) {
+            let modal = document.getElementById(id_modal);
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        function calcPaths() {
+            let paths = document.querySelectorAll('path.pre-req');
+            let group = document.getElementById('conexoes-pre-requisitos');
+            let paths_string = '';
+            for (path of paths) {
+                let originId = path.getAttribute('data-origem');
+                let endId = path.getAttribute('data-fim');
+                let start = document.getElementById(originId);
+                let end = document.getElementById(endId);
+                let startGroup = start.parentElement;
+                let endGroup = end.parentElement;
+
+                let startX = startGroup.getAttribute('data-x');
+                let endX = endGroup.getAttribute('data-x');
+
+                let [x1, y1, w1, h1] = [Number(startX), Number(start.getAttribute('y'))
+                    , Number(start.getAttribute('width')), Number(start.getAttribute('height'))];
+                let [x2, y2, w2, h2] = [Number(endX), Number(end.getAttribute('y')),
+                Number(end.getAttribute('width')), Number(end.getAttribute('height'))];
+
+                let lineStart = 'M ' + (x1 + w1) + ' ' + (y1 + h1 / 2);
+
+                //<path class="pre-req" d="M 195 200 L 225 50 L 650 50 L 705 125" data-origem="pre-calculo" data-fim="estatistica-1"></path>
+                //45,140 -> 705,65
+                //150x120
+                let lineDown = 'L ' + (x1 + w1 + 30) + ' ' + (y2 + h2 + 15);
+                let lineUp = 'L ' + (x1 + w1 + 30) + ' ' + (y2 - 15);   //L 225 50
+
+                let lineForwardDown = 'L ' + (x2 - 30) + ' ' + (y2 + h2 + 15);
+                let lineForwardUp = 'L ' + (x2 - 30) + ' ' + (y2 - 15); //L 650 50
+
+                let lineEnd = 'L ' + (x2) + ' ' + (y2 + h2 / 2); //L 705 125
+                let newPath = path.cloneNode();
+                let newPath2 = path.cloneNode();
+
+                newPath.setAttribute('d', '' + lineStart + ' ' + lineDown + ' ' + lineForwardDown + lineEnd);
+                newPath2.setAttribute('d', '' + lineStart + ' ' + lineUp + ' ' + lineForwardUp + lineEnd);
+
+                newPath2.setAttribute('style', 'stroke: magenta;stroke-width:3px;');
+                newPath.setAttribute('style', 'stroke: red;stroke-width:3px;');
+
+                group.appendChild(newPath);
+                group.appendChild(newPath2);
+                console.log(newPath);
+                console.log(newPath2);
+                paths_string += newPath.outerHTML + '\n';
+                paths_string += newPath2.outerHTML + '\n';
+                // break;
+            }
+            console.log(paths_string)
+        }
+    </script>
+
+    <link rel="stylesheet" href="styles/basic.css">
+    <link rel="stylesheet" href="styles/header.css">
+    <link rel="stylesheet" href="styles/matriz.css">
+    <link rel="stylesheet" href="styles/content.css">
+
+</head>
+
+<body>
+
+    <header class="website-header">
+        <div class="header-container">
+
+            <div class="logo-area">
+                <div class="logo-unisenai">
+                    <a href="website_template.html">
+                        <img src="LogoIES.png" width="300" />
+                    </a>
+                </div>
+            </div>
+
+            <div class="logo-cdia">
+                <a href="website_template.html">
+                    <img src="CDIA_Transparente.png" width="250" />
+                </a>
+            </div>
+
+            <nav class="main-nav">
+                <ul class="menu">
+                    <li><a href="website_template.html" class="active">O Curso</a></li>
+                    <li><a href="eventos.html">Eventos</a></li>
+                    <li class="nav-dropdown">
+                        <a href="producoes.html">Produções <span>▼</span></a>
+                        <ul class="submenu">
+                            <li><a href="producoes.html">Ver Todas</a></li>
+                            <li><a href="producoes.html">Dos Professores</a></li>
+                            <li><a href="producoes.html">Dos Alunos</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="website-main">
+        <div class="container">
+
+            <header class="page-header">
+                <h2>Bacharelado em Ciência de Dados e Inteligência Artificial</h2>
+                <p>Conheça a estrutura do curso, focado em formar o profissional que domina a análise de dados, a
+                    criação de modelos preditivos e a aplicação de Inteligência Artificial para a tomada de decisões</p>
+            </header>
+
+            <section class="course-highlights">
+                <div class="highlight-box">
+                    <h3>Modalidade</h3>
+                    <p>Presencial</p>
+                </div>
+                <div class="highlight-box">
+                    <h3>Duração</h3>
+                    <p>8 Semestres</p>
+                </div>
+                <div class="highlight-box">
+                    <h3>Carga Horária</h3>
+                    <p>3260 Horas</p>
+                </div>
+                <div class="highlight-box">
+                    <h3>Período</h3>
+                    <p>Matutino</p>
+                </div>
+            </section>
+
+            <section class="curriculum-section">
+                <h2>Matriz Curricular Interativa</h2>
+                <p>
+                    Navegue pela matriz para explorar as unidades curriculares (UCs)!
+                    Posicione o mouse sobre uma unidade para destacar seus pré-requisitos e clique em
+                    qualquer uma delas para ver a ementa detalhada.</p>
+
+                <div class="matriz-curricular id=" matriz-svg-container">
+                    <div class="matriz-curricular__sub-container matriz-curricular__flex-col">
+                        <div class="matriz-curricular__flex matriz-curricular__flex--medium-gap 
+                                flex--align-center">
+                            <svg id="matriz_svg" viewBox="0 0 1780 1050" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <style>
+                                        .node-rect {
+                                            fill: rgba(232, 232, 232, 0.2);
+                                            stroke: rgb(96, 96, 96);
+                                            stroke-width: 1.5;
+                                        }
+
+                                        .node-text {
+                                            font-family: Helvetica, Arial, sans-serif;
+                                            font-size: 14px;
+                                            text-anchor: middle;
+                                            dominant-baseline: middle;
+                                            pointer-events: none;
+                                        }
+
+                                        .phase-label {
+                                            font-family: Helvetica, Arial, sans-serif;
+                                            font-size: 20px;
+                                            font-weight: bold;
+                                            text-anchor: middle;
+                                            fill: white;
+                                        }
+
+                                        .node-rect[data-highlight] {
+                                            fill: rgb(0, 92, 164);
+                                        }
+
+                                        .node-rect[data-selected] {
+                                            fill: rgb(240, 139, 31);
+                                            stroke-width: 2px;
+                                        }
+
+                                        line.pre-req {
+                                            stroke: #cfcfcf;
+                                            stroke-width: 2;
+                                        }
+
+                                        path.pre-req {
+                                            fill: none;
+                                            stroke: blue;
+                                            stroke-dasharray: 8 10;
+                                            stroke-width: 4;
+                                        }
+
+                                        .pre-req[data-highlight] {
+                                            stroke-width: 7px;
+                                            stroke: rgb(123, 158, 255) !important;
+                                        }
+
+                                        .pre-req[data-origem="arquitetura-so-e-redes"] {
+                                            stroke: green;
+                                            stroke-dasharray: 8 8;
+                                        }
+
+                                        path.pre-req[data-origem="algoritmos-e-programacao"] {
+                                            stroke: purple;
+                                            stroke-dasharray: 20 4;
+                                        }
+
+                                        path.pre-req[data-origem="banco-de-dados-2"] {
+                                            stroke: red;
+                                            stroke-dasharray: 12 10 12 10 12 10 2 8 2 10;
+                                            stroke-linecap: round;
+                                        }
+
+                                        line {
+                                            stroke: rgba(250, 250, 250, 0.3);
+                                        }
+
+                                        .dashed {
+                                            stroke-dasharray: 5 5;
+                                        }
+
+                                        use.curriculo__matematica {
+                                            fill: rgb(240, 139, 31);
+                                        }
+
+                                        use.curriculo__base-comum {
+                                            fill: rgba(55, 151, 240);
+                                        }
+
+                                        use.curriculo__transversal {
+                                            fill: rgb(164, 248, 185);
+                                        }
+
+                                        use.curriculo__extensao {
+                                            fill: rgb(253, 253, 176);
+                                        }
+
+                                        use.curriculo__especifico {
+                                            fill: rgb(179, 141, 190);
+                                        }
+
+                                        use.curriculo__tcc {
+                                            fill: rgb(182, 120, 113);
+                                        }
+
+                                        .node-rect.curriculo__matematica {
+                                            stroke: rgb(240, 139, 31);
+                                            stroke-width: 4px;
+                                        }
+
+                                        .node-rect.curriculo__base-comum {
+                                            stroke: rgba(55, 151, 240);
+                                            stroke-width: 4px;
+                                        }
+
+                                        .node-rect.curriculo__transversal {
+                                            stroke: rgb(164, 248, 185);
+                                            stroke-width: 4px;
+                                        }
+
+                                        .node-rect.curriculo__extensao {
+                                            stroke: rgb(253, 253, 176);
+                                            stroke-width: 4px;
+                                        }
+
+                                        .node-rect.curriculo__especifico {
+                                            stroke: rgb(179, 141, 190);
+                                            stroke-width: 4px;
+                                        }
+
+                                        .node-rect.curriculo__tcc {
+                                            stroke: rgb(182, 120, 113);
+                                            stroke-width: 4px;
+                                        }
+
+                                        g.icone {
+                                            -webkit-transform: scale(2.0);
+                                            -webkit-transform-origin: 50% 50%;
+                                            -webkit-transition: .3s;
+                                            transform: scale(2.0);
+                                            transform-origin: 50% 50%;
+                                            transition: .3s;
+                                            transform-box: fill-box;
+                                            fill: "#000000";
+                                        }
+
+                                        use.icone {
+                                            transform: translate(5px, 5px);
+                                        }
+
+                                        .node-text {
+                                            font-size: 1.5em;
+                                            stroke-width: 0.2px;
+                                            stroke: rgb(255, 255, 255);
+                                            fill: rgb(255, 255, 255);
+                                        }
+
+                                        #legenda text {
+                                            text-anchor: start;
+                                            font-size: 1.5em;
+                                        }
+                                    </style>
+                                    <!--Frame dos Icones-->
+                                    <circle id='icone__frame' r="15" cx="12" cy="12" />
+                                    <!--Icones-->
+                                    <g class="icone" id="icone_construction">
+                                        <use href='#icone__frame' class="curriculo__matematica" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
+                                            width="24px">
+                                            <path
+                                                d="M756-120 537-339l84-84 219 219-84 84Zm-552 0-84-84 276-276-68-68-28 28-51-51v82l-28 28-121-121 28-28h82l-50-50 142-142q20-20 43-29t47-9q24 0 47 9t43 29l-92 92 50 50-28 28 68 68 90-90q-4-11-6.5-23t-2.5-24q0-59 40.5-99.5T701-841q15 0 28.5 3t27.5 9l-99 99 72 72 99-99q7 14 9.5 27.5T841-701q0 59-40.5 99.5T701-561q-12 0-24-2t-23-7L204-120Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_manufacturing">
+                                        <use href='#icone__frame' class="curriculo__matematica" />
+                                        <svg id="icone_manufacturing__symbol" xmlns="http://www.w3.org/2000/svg"
+                                            height="24px" viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="m234-480-12-60q-12-5-22.5-10.5T178-564l-58 18-40-68 46-40q-2-13-2-26t2-26l-46-40 40-68 58 18q11-8 21.5-13.5T222-820l12-60h80l12 60q12 5 22.5 10.5T370-796l58-18 40 68-46 40q2 13 2 26t-2 26l46 40-40 68-58-18q-11 8-21.5 13.5T326-540l-12 60h-80Zm40-120q33 0 56.5-23.5T354-680q0-33-23.5-56.5T274-760q-33 0-56.5 23.5T194-680q0 33 23.5 56.5T274-600ZM592-40l-18-84q-17-6-31.5-14.5T514-158l-80 26-56-96 64-56q-2-18-2-36t2-36l-64-56 56-96 80 26q14-11 28.5-19.5T574-516l18-84h112l18 84q17 6 31.5 14.5T782-482l80-26 56 96-64 56q2 18 2 36t-2 36l64 56-56 96-80-26q-14 11-28.5 19.5T722-124l-18 84H592Zm56-160q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_domain">
+                                        <use href='#icone__frame' class="curriculo__extensao" />
+                                        <svg id='icone_domain__symbol' xmlns="http://www.w3.org/2000/svg" height="24px"
+                                            viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="M80-120v-720h400v160h400v560H80Zm80-80h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h320v-400H480v80h80v80h-80v80h80v80h-80v80Zm160-240v-80h80v80h-80Zm0 160v-80h80v80h-80Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_school">
+                                        <use href='#icone__frame' class="curriculo__tcc" />
+                                        <svg id='icone_school__symbol' xmlns="http://www.w3.org/2000/svg" height="24px"
+                                            viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="M480-120 200-272v-240L40-600l440-240 440 240v320h-80v-276l-80 44v240L480-120Zm0-332 274-148-274-148-274 148 274 148Zm0 241 200-108v-151L480-360 280-470v151l200 108Zm0-241Zm0 90Zm0 0Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_groups">
+                                        <use href='#icone__frame' class="curriculo__transversal" />
+                                        <svg id='icone_groups__symbol' xmlns="http://www.w3.org/2000/svg" height="24px"
+                                            viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="M0-240v-63q0-43 44-70t116-27q13 0 25 .5t23 2.5q-14 21-21 44t-7 48v65H0Zm240 0v-65q0-32 17.5-58.5T307-410q32-20 76.5-30t96.5-10q53 0 97.5 10t76.5 30q32 20 49 46.5t17 58.5v65H240Zm540 0v-65q0-26-6.5-49T754-397q11-2 22.5-2.5t23.5-.5q72 0 116 26.5t44 70.5v63H780Zm-455-80h311q-10-20-55.5-35T480-370q-55 0-100.5 15T325-320ZM160-440q-33 0-56.5-23.5T80-520q0-34 23.5-57t56.5-23q34 0 57 23t23 57q0 33-23 56.5T160-440Zm640 0q-33 0-56.5-23.5T720-520q0-34 23.5-57t56.5-23q34 0 57 23t23 57q0 33-23 56.5T800-440Zm-320-40q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T600-600q0 50-34.5 85T480-480Zm0-80q17 0 28.5-11.5T520-600q0-17-11.5-28.5T480-640q-17 0-28.5 11.5T440-600q0 17 11.5 28.5T480-560Zm1 240Zm-1-280Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_code">
+                                        <use href='#icone__frame' class="curriculo__base-comum" />
+                                        <svg id='icone_code__symbol' xmlns="http://www.w3.org/2000/svg" height="24px"
+                                            viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="M320-240 80-480l240-240 57 57-184 184 183 183-56 56Zm320 0-57-57 184-184-183-183 56-56 240 240-240 240Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_data_object">
+                                        <use href='#icone__frame' class="curriculo__base-comum" />
+                                        <svg id='icone_data_object__symbol' xmlns="http://www.w3.org/2000/svg"
+                                            height="24px" viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="M560-160v-80h120q17 0 28.5-11.5T720-280v-80q0-38 22-69t58-44v-14q-36-13-58-44t-22-69v-80q0-17-11.5-28.5T680-720H560v-80h120q50 0 85 35t35 85v80q0 17 11.5 28.5T840-560h40v160h-40q-17 0-28.5 11.5T800-360v80q0 50-35 85t-85 35H560Zm-280 0q-50 0-85-35t-35-85v-80q0-17-11.5-28.5T120-400H80v-160h40q17 0 28.5-11.5T160-600v-80q0-50 35-85t85-35h120v80H280q-17 0-28.5 11.5T240-680v80q0 38-22 69t-58 44v14q36 13 58 44t22 69v80q0 17 11.5 28.5T280-240h120v80H280Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_graph">
+                                        <use href='#icone__frame' class="curriculo__matematica" />
+                                        <svg id='icone_graph__symbol' xmlns="http://www.w3.org/2000/svg" height="24px"
+                                            viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="M480-80q-50 0-85-35t-35-85q0-5 .5-11t1.5-11l-83-47q-16 14-36 21.5t-43 7.5q-50 0-85-35t-35-85q0-50 35-85t85-35q24 0 45 9t38 25l119-60q-3-23 2.5-45t19.5-41l-34-52q-7 2-14.5 3t-15.5 1q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 20-6.5 38.5T456-688l35 52q8-2 15-3t15-1q17 0 32 4t29 12l66-54q-4-10-6-20.5t-2-21.5q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35q-17 0-32-4.5T699-617l-66 55q4 10 6 20.5t2 21.5q0 50-35 85t-85 35q-24 0-45.5-9T437-434l-118 59q2 9 1.5 18t-2.5 18l84 48q16-14 35.5-21.5T480-320q50 0 85 35t35 85q0 50-35 85t-85 35ZM200-320q17 0 28.5-11.5T240-360q0-17-11.5-28.5T200-400q-17 0-28.5 11.5T160-360q0 17 11.5 28.5T200-320Zm160-400q17 0 28.5-11.5T400-760q0-17-11.5-28.5T360-800q-17 0-28.5 11.5T320-760q0 17 11.5 28.5T360-720Zm120 560q17 0 28.5-11.5T520-200q0-17-11.5-28.5T480-240q-17 0-28.5 11.5T440-200q0 17 11.5 28.5T480-160Zm40-320q17 0 28.5-11.5T560-520q0-17-11.5-28.5T520-560q-17 0-28.5 11.5T480-520q0 17 11.5 28.5T520-480Zm240-200q17 0 28.5-11.5T800-720q0-17-11.5-28.5T760-760q-17 0-28.5 11.5T720-720q0 17 11.5 28.5T760-680Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_monitoring">
+                                        <use href='#icone__frame' class="curriculo__matematica" />
+                                        <svg id='icone_monitoring__symbol' xmlns="http://www.w3.org/2000/svg"
+                                            height="24px" viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="M120-120v-80l80-80v160h-80Zm160 0v-240l80-80v320h-80Zm160 0v-320l80 81v239h-80Zm160 0v-239l80-80v319h-80Zm160 0v-400l80-80v480h-80ZM120-327v-113l280-280 160 160 280-280v113L560-447 400-607 120-327Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_bar_chart">
+                                        <use href='#icone__frame' class="curriculo__matematica" />
+                                        <svg id='icone_bar_chart__symbol' xmlns="http://www.w3.org/2000/svg"
+                                            height="24px" viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="M640-160v-280h160v280H640Zm-240 0v-640h160v640H400Zm-240 0v-440h160v440H160Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_analytics">
+                                        <use href='#icone__frame' class="curriculo__especifico" />
+                                        <svg id='icone_analytics__symbol' xmlns="http://www.w3.org/2000/svg"
+                                            height="24px" viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="M280-280h80v-200h-80v200Zm320 0h80v-400h-80v400Zm-160 0h80v-120h-80v120Zm0-200h80v-80h-80v80ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_neural-network">
+                                        <use href='#icone__frame' class="curriculo__especifico" />
+                                        <svg id='icone_neural-network__symbol' xmlns="http://www.w3.org/2000/svg"
+                                            height="24px" viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="M323-160q-11 0-20.5-5.5T288-181l-78-139h58l40 80h92v-40h-68l-40-80H188l-57-100q-2-5-3.5-10t-1.5-10q0-4 5-20l57-100h104l40-80h68v-40h-92l-40 80h-58l78-139q5-10 14.5-15.5T323-800h97q17 0 28.5 11.5T460-760v160h-60l-40 40h100v120h-88l-40-80h-92l-40 40h108l40 80h112v200q0 17-11.5 28.5T420-160h-97Zm237 0q-33 0-56.5-23.5T480-240q0-23 11-40.5t29-28.5v-342q-18-11-29-28.5T480-720q0-33 23.5-56.5T560-800q33 0 56.5 23.5T640-720q0 23-11 40.5T600-651v101l80-48q0-34 23.5-58t56.5-24q33 0 56.5 23.5T840-600q0 33-23.5 56.5T760-520q-11 0-20.5-2.5T721-530l-91 55 101 80q7-3 14-4t15-1q33 0 56.5 23.5T840-320q0 33-23.5 56.5T760-240q-37 0-60.5-28T681-332l-81-65v89q18 11 28.5 28.5T639-240q0 33-23 56.5T560-160Z" />
+                                        </svg>
+                                    </g>
+                                    <g class="icone" id="icone_function">
+                                        <use href='#icone__frame' class="curriculo__matematica" />
+                                        <svg id='icone_function__symbol' xmlns="http://www.w3.org/2000/svg"
+                                            height="24px" viewBox="0 -960 960 960" width="24px">
+                                            <path
+                                                d="M400-240v-80h62l105-120-105-120h-66l-64 344q-8 45-37 70.5T221-120q-45 0-73-24t-28-64q0-32 17-51.5t43-19.5q25 0 42.5 17t17.5 41q0 5-.5 9t-1.5 9q5-1 8.5-5.5T252-221l62-339H200v-80h129l21-114q7-38 37.5-62t72.5-24q44 0 72 26t28 65q0 30-17 49.5T500-680q-25 0-42.5-17T440-739q0-5 .5-9t1.5-9q-6 2-9 6t-5 12l-17 99h189v80h-32l52 59 52-59h-32v-80h200v80h-62L673-440l105 120h62v80H640v-80h32l-52-60-52 60h32v80H400Z" />
+                                        </svg>
+                                    </g>
+                                </defs>
+
+                                <g id="module-labels">
+                                    <text x="230" y="20" class="phase-label">Módulo Básico</text>
+                                    <text x="670" y="20" class="phase-label">Módulo Introdutório</text>
+                                    <text x="1110" y="20" class="phase-label">Módulo Específico I</text>
+                                    <text x="1550" y="20" class="phase-label">Módulo Específico II</text>
+                                </g>
+                                <g id="content" transform="translate(0, 40)">
+                                    <g id="phase-labels">
+                                        <text x="120" y="10" class="phase-label">Fase 1</text>
+                                        <text x="340" y="10" class="phase-label">Fase 2</text>
+                                        <line class="dashed" x1="450" y1="-35" x2="450" y2="15" style="stroke:white" />
+                                        <text x="560" y="10" class="phase-label">Fase 3</text>
+                                        <text x="780" y="10" class="phase-label">Fase 4</text>
+                                        <line class="dashed" x1="890" y1="-35" x2="890" y2="15" style="stroke:white" />
+                                        <text x="1000" y="10" class="phase-label">Fase 5</text>
+                                        <text x="1220" y="10" class="phase-label">Fase 6</text>
+                                        <line class="dashed" x1="1330" y1="-35" x2="1330" y2="15"
+                                            style="stroke:white" />
+                                        <text x="1440" y="10" class="phase-label">Fase 7</text>
+                                        <text x="1660" y="10" class="phase-label">Fase 8</text>
+                                        <line class="dashed" x1="20" y1="15" x2="1800" y2="15" style="stroke:white" />
+                                    </g>
+
+                                    <g id="fase1" transform="translate(45,0)" data-x="45">
+
+                                        <g transform="translate(0,140)">
+
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="-15"
+                                                data-origem="pre-calculo" data-fim="calculo-1" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="135"
+                                                data-origem="pre-calculo"
+                                                data-fim="algebra-linear-e-geometria-analitica" />
+                                            <line x1="150" y1="60" x2="220" y2="285" data-origem="pre-calculo"
+                                                data-fim="banco-de-dados-1" />
+                                            <line x1="150" y1="60" x2="220" y2="435" data-origem="pre-calculo"
+                                                data-fim="estruturas-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="585" data-origem="pre-calculo"
+                                                data-fim="engenharia-de-software" />
+                                            <line x1="150" y1="60" x2="220" y2="735" data-origem="pre-calculo"
+                                                data-fim="projeto-aplicado-1" />
+
+                                            <path class="pre-req" d="M 150 60 l 25 -150 l 445 0 l 40 75"
+                                                data-origem="pre-calculo" data-fim="estatistica-1"></path>
+
+
+                                            <rect id='pre-calculo' class="curriculo__matematica node-rect" x="0" y="0"
+                                                width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_function" x="0" y="0" class="icone"
+                                                style="transform-origin: center;" />
+                                            <text class="node-text" x="120" y="60">
+                                                <tspan x="75" dy="-0.65em">Pré-cálculo</tspan>
+                                            </text>
+
+
+
+                                        </g>
+
+                                        <g transform="translate(0,290)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-165"
+                                                data-origem="algoritmos-e-programacao" data-fim="calculo-1" />
+                                            <line x1="150" y1="60" x2="220" y2="-15"
+                                                data-origem="algoritmos-e-programacao"
+                                                data-fim="algebra-linear-e-geometria-analitica" />
+                                            <line x1="150" y1="60" x2="220" y2="135"
+                                                data-origem="algoritmos-e-programacao" data-fim="banco-de-dados-1" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="285"
+                                                data-origem="algoritmos-e-programacao" data-fim="estruturas-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="435"
+                                                data-origem="algoritmos-e-programacao"
+                                                data-fim="engenharia-de-software" />
+                                            <line x1="150" y1="60" x2="220" y2="585"
+                                                data-origem="algoritmos-e-programacao" data-fim="projeto-aplicado-1" />
+
+                                            <path class="pre-req" d="M 150 60 l 30 0 l 890 0 l 30 75"
+                                                data-origem="algoritmos-e-programacao"
+                                                data-fim="programacao-distribuida-com-gpu"></path>
+
+                                            <path class="pre-req" d="M 150 60 l 30 0 l 670 0 l 30 -75"
+                                                data-origem="algoritmos-e-programacao" data-fim="machine-learning">
+                                            </path>
+
+                                            <path class="pre-req" d="M 150 60 l 30 -330 l 1330 0 l 30 105"
+                                                data-origem="algoritmos-e-programacao"
+                                                data-fim="desenvolvimento-de-solucoes-industriais"></path>
+
+                                            <path class="pre-req" d="M 150 60 l 60 140 l 1270 0 l 60 -215"
+                                                data-origem="algoritmos-e-programacao"
+                                                data-fim="sistemas-roboticos-inteligentes"></path>
+
+
+
+                                            <rect id='algoritmos-e-programacao' class="curriculo__base-comum node-rect"
+                                                x="0" y="0" width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_code" x="0" y="0" class="icone" />
+                                            <text id='pre-calculo_label' class="node-text" x="120" y="60">
+                                                <tspan x="75" dy="-0.65em">Algoritmos e</tspan>
+                                                <tspan x="75" dy="1.3em">Programação</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,440)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-315"
+                                                data-origem="arquitetura-so-e-redes" data-fim="calculo-1" />
+                                            <line x1="150" y1="60" x2="220" y2="-165"
+                                                data-origem="arquitetura-so-e-redes"
+                                                data-fim="algebra-linear-e-geometria-analitica" />
+                                            <line x1="150" y1="60" x2="220" y2="-15"
+                                                data-origem="arquitetura-so-e-redes" data-fim="banco-de-dados-1" />
+                                            <line x1="150" y1="60" x2="220" y2="135"
+                                                data-origem="arquitetura-so-e-redes" data-fim="estruturas-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="285"
+                                                data-origem="arquitetura-so-e-redes"
+                                                data-fim="engenharia-de-software" />
+                                            <line x1="150" y1="60" x2="220" y2="435"
+                                                data-origem="arquitetura-so-e-redes" data-fim="projeto-aplicado-1" />
+
+
+                                            <path class="pre-req" d="M 150 60 l 60 150 l 410 0 l 40 -75"
+                                                data-origem="arquitetura-so-e-redes" data-fim="computacao-em-nuvem">
+                                            </path>
+
+                                            <path class="pre-req" d="M 150 60 l 30 160 l 1300 0 l 60 -385"
+                                                data-origem="arquitetura-so-e-redes"
+                                                data-fim="sistemas-roboticos-inteligentes">
+                                            </path>
+                                            
+                                            <path class="pre-req" d="M 150 60 l 60 -460 l 1080 0 l 30 85"
+                                                data-origem="arquitetura-so-e-redes"
+                                                data-fim="iniciacao-de-projetos-industriais"></path>
+
+                                            <path class="pre-req" d="M 150 60 l 60 -160 l 1080 0 l 30 -65"
+                                                data-origem="arquitetura-so-e-redes" data-fim="teoria-da-computacao">
+                                            </path>
+                                            
+                                            <path class="pre-req" d="M 150 60 l 30 0 l 890 0 l 30 -75"
+                                                data-origem="arquitetura-so-e-redes"
+                                                data-fim="programacao-distribuida-com-gpu">
+                                            </path>
+                                            <!-- <path class="pre-req" d="M 195 500 L 225 660 L 1525 660 L 1585 275"
+                                                data-origem="arquitetura-so-e-redes"
+                                                data-fim="sistemas-roboticos-inteligentes">
+                                            </path>
+                                            <path class="pre-req" d="M 195 500 L 255 40 L 1335 40L 1365 125"
+                                                data-origem="arquitetura-so-e-redes"
+                                                data-fim="iniciacao-de-projetos-industriais"></path>
+
+                                            <path class="pre-req" d="M 195 500 L 255 340 L 1335 340L 1365 275"
+                                                data-origem="arquitetura-so-e-redes" data-fim="teoria-da-computacao">
+                                            </path>
+                                            <path class="pre-req" d="M 195 500 L 225 500 L 1115 500L 1145 425"
+                                                data-origem="arquitetura-so-e-redes"
+                                                data-fim="programacao-distribuida-com-gpu">
+                                            </path> -->
+
+                                            <rect id='arquitetura-so-e-redes' class="curriculo__base-comum node-rect"
+                                                x="0" y="0" width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_code" x="0" y="0" class="icone" />
+                                            <text id='arquitetura-so-e-redes_label' class="node-text" x="120" y="60">
+                                                <tspan x="75" dy="-0.65em">Arquitetura, SO</tspan>
+                                                <tspan x="75" dy="1.3em">e Redes</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,590)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-465"
+                                                data-origem="inovacao-e-empreendedorismo" data-fim="calculo-1" />
+                                            <line x1="150" y1="60" x2="220" y2="-315"
+                                                data-origem="inovacao-e-empreendedorismo"
+                                                data-fim="algebra-linear-e-geometria-analitica" />
+                                            <line x1="150" y1="60" x2="220" y2="-165"
+                                                data-origem="inovacao-e-empreendedorismo" data-fim="banco-de-dados-1" />
+                                            <line x1="150" y1="60" x2="220" y2="-15"
+                                                data-origem="inovacao-e-empreendedorismo"
+                                                data-fim="estruturas-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="135"
+                                                data-origem="inovacao-e-empreendedorismo"
+                                                data-fim="engenharia-de-software" />
+                                            <line x1="150" y1="60" x2="220" y2="285"
+                                                data-origem="inovacao-e-empreendedorismo"
+                                                data-fim="projeto-aplicado-1" />
+
+                                            <rect id='inovacao-e-empreendedorismo'
+                                                class="curriculo__transversal node-rect" x="0" y="0" width="150"
+                                                height="120" rx="60" ry="60" />
+                                            <use href="#icone_groups" x="0" y="0" class="icone" />
+                                            <text id='inovacao-e-empreendedorismo_label' class="node-text" x="120"
+                                                y="60">
+                                                <tspan x="75" dy="-0.65em">Inovação e</tspan>
+                                                <tspan x="75" dy="1.3em">Empreendedorismo</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,740)">
+                                            <line x1="150" y1="60" x2="220" y2="-615"
+                                                data-origem="metodologia-de-projetos" data-fim="calculo-1" />
+                                            <line x1="150" y1="60" x2="220" y2="-465"
+                                                data-origem="metodologia-de-projetos"
+                                                data-fim="algebra-linear-e-geometria-analitica" />
+                                            <line x1="150" y1="60" x2="220" y2="-315"
+                                                data-origem="metodologia-de-projetos" data-fim="banco-de-dados-1" />
+                                            <line x1="150" y1="60" x2="220" y2="-165"
+                                                data-origem="metodologia-de-projetos" data-fim="estruturas-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="-15"
+                                                data-origem="metodologia-de-projetos"
+                                                data-fim="engenharia-de-software" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="135"
+                                                data-origem="metodologia-de-projetos" data-fim="projeto-aplicado-1" />
+
+                                            <rect id='metodologia-de-projetos' class="curriculo__extensao node-rect"
+                                                x="0" y="0" width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_domain" x="0" y="0" class="icone" />
+                                            <text id='metodologia-de-projetos_label' class="node-text" x="120" y="60">
+                                                <tspan x="75" dy="-0.65em">Metodologia</tspan>
+                                                <tspan x="75" dy="1.3em">de Projetos</tspan>
+                                            </text>
+                                        </g>
+
+                                    </g>
+                                    <g id="fase2" transform="translate(265,0)" data-x="265">
+
+                                        <g transform="translate(0,65)">
+
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="calculo-1" data-fim="teoria-da-probabilidade" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="calculo-1" data-fim="calculo-2" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="calculo-1"
+                                                data-fim="banco-de-dados-2" />
+                                            <line x1="150" y1="60" x2="220" y2="510" data-origem="calculo-1"
+                                                data-fim="bi-e-data-visualization" />
+                                            <line x1="150" y1="60" x2="220" y2="660" data-origem="calculo-1"
+                                                data-fim="eletiva-1" />
+                                            <line x1="150" y1="60" x2="220" y2="810" data-origem="calculo-1"
+                                                data-fim="projeto-aplicado-2" />
+
+                                            <rect id="calculo-1" class="curriculo__matematica node-rect" x="0" y="0"
+                                                width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="pre-calculo" />
+                                            <use href="#icone_function" x="0" y="0" class="icone" />
+                                            <text id="calculo-1_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Cálculo I</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,215)">
+                                            <line x1="150" y1="60" x2="220" y2="-90"
+                                                data-origem="algebra-linear-e-geometria-analitica"
+                                                data-fim="banco-de-dados-2" />
+                                            <line x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="algebra-linear-e-geometria-analitica"
+                                                data-fim="teoria-da-probabilidade" />
+                                            <line x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="algebra-linear-e-geometria-analitica"
+                                                data-fim="calculo-2" />
+                                            <line x1="150" y1="60" x2="220" y2="360"
+                                                data-origem="algebra-linear-e-geometria-analitica"
+                                                data-fim="bi-e-data-visualization" />
+                                            <line x1="150" y1="60" x2="220" y2="510"
+                                                data-origem="algebra-linear-e-geometria-analitica"
+                                                data-fim="eletiva-1" />
+                                            <line x1="150" y1="60" x2="220" y2="660"
+                                                data-origem="algebra-linear-e-geometria-analitica"
+                                                data-fim="projeto-aplicado-2" />
+
+                                            <path class="pre-req" d="M 150 60 l 30 365 l 450 0 l 30 -65"
+                                            data-origem="algebra-linear-e-geometria-analitica"
+                                            data-fim="analise-de-series">
+                                        </path>
+
+                                            <rect id="algebra-linear-e-geometria-analitica"
+                                                class="curriculo__matematica node-rect" x="0" y="0" width="150"
+                                                height="120" rx="60" ry="60" data-pre-requisito="pre-calculo" />
+                                            <use href="#icone_function" x="0" y="0" class="icone" />
+                                            <text id="algebra-linear-e-geometria-analitica_label" class="node-text"
+                                                x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Algebra Linear</tspan>
+                                                <tspan x="75" dy="1.3em">e GA</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,365)">
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="banco-de-dados-1"
+                                                data-fim="teoria-da-probabilidade" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="banco-de-dados-1"
+                                                data-fim="calculo-2" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="banco-de-dados-1" data-fim="banco-de-dados-2" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="banco-de-dados-1"
+                                                data-fim="bi-e-data-visualization" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="banco-de-dados-1"
+                                                data-fim="eletiva-1" />
+                                            <line x1="150" y1="60" x2="220" y2="510" data-origem="banco-de-dados-1"
+                                                data-fim="projeto-aplicado-2" />
+
+                                            <rect id="banco-de-dados-1" class="curriculo__base-comum node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_code" x="0" y="0" class="icone" />
+                                            <text id="banco-de-dados-1_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Banco de</tspan>
+                                                <tspan x="75" dy="1.3em">Dados I</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,515)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="estruturas-de-dados"
+                                                data-fim="banco-de-dados-2" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="estruturas-de-dados"
+                                                data-fim="teoria-da-probabilidade" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="estruturas-de-dados"
+                                                data-fim="calculo-2" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="estruturas-de-dados"
+                                                data-fim="bi-e-data-visualization" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="estruturas-de-dados"
+                                                data-fim="eletiva-1" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="estruturas-de-dados"
+                                                data-fim="projeto-aplicado-2" />
+
+                                            <rect id="estruturas-de-dados" data-pre-requisito="algoritmos-e-programacao"
+                                                class="curriculo__base-comum node-rect" x="0" y="0" width="150"
+                                                height="120" rx="60" ry="60" />
+                                            <use href="#icone_code" x="0" y="0" class="icone" />
+                                            <text id="estruturas-de-dados_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Estruturas</tspan>
+                                                <tspan x="75" dy="1.3em">de Dados</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,665)">
+                                            <line x1="150" y1="60" x2="220" y2="-540"
+                                                data-origem="engenharia-de-software" data-fim="banco-de-dados-2" />
+                                            <line x1="150" y1="60" x2="220" y2="-390"
+                                                data-origem="engenharia-de-software"
+                                                data-fim="teoria-da-probabilidade" />
+                                            <line x1="150" y1="60" x2="220" y2="-240"
+                                                data-origem="engenharia-de-software" data-fim="calculo-2" />
+                                            <line x1="150" y1="60" x2="220" y2="-90"
+                                                data-origem="engenharia-de-software"
+                                                data-fim="bi-e-data-visualization" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="engenharia-de-software"
+                                                data-fim="eletiva-1" />
+                                            <line x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="engenharia-de-software" data-fim="projeto-aplicado-2" />
+
+                                            <path class="pre-req" d="M 150 60 l 30 75 l 230 0 l 30 -75"
+                                                data-origem="engenharia-de-software" data-fim="gestao-agil-de-projetos">
+                                            </path>
+                                            <!-- <path class="pre-req" d="M 415 725 L 445 800 L 675 800 L 705 725"
+                                                data-origem="engenharia-de-software" data-fim="gestao-agil-de-projetos">
+                                            </path> -->
+
+
+                                            <rect id="engenharia-de-software" class="curriculo__transversal node-rect"
+                                                x="0" y="0" width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_groups" x="0" y="0" class="icone" />
+                                            <text id="engenharia-de-software_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Engenharia de</tspan>
+                                                <tspan x="75" dy="1.3em">Software</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,815)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-690" data-origem="projeto-aplicado-1"
+                                                data-fim="banco-de-dados-2" />
+                                            <line x1="150" y1="60" x2="220" y2="-540" data-origem="projeto-aplicado-1"
+                                                data-fim="teoria-da-probabilidade" />
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="projeto-aplicado-1"
+                                                data-fim="calculo-2" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="projeto-aplicado-1"
+                                                data-fim="bi-e-data-visualization" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="projeto-aplicado-1"
+                                                data-fim="eletiva-1" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="projeto-aplicado-1" data-fim="projeto-aplicado-2" />
+
+                                            <rect id="projeto-aplicado-1" class="curriculo__extensao node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="metodologia-de-projetos" />
+                                            <use href="#icone_domain" x="0" y="0" class="icone" />
+                                            <text id="projeto-aplicado-1_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Projeto</tspan>
+                                                <tspan x="75" dy="1.3em">Aplicado I</tspan>
+                                            </text>
+                                        </g>
+
+                                    </g>
+                                    <g id="fase3" transform="translate(485,0)" data-x="485">
+                                        <g transform="translate(0,65)">
+
+                                            <line x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="teoria-da-probabilidade" data-fim="estatistica-1" />
+                                            <line x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="teoria-da-probabilidade"
+                                                data-fim="engenharia-de-dados-mlops" />
+                                            <line x1="150" y1="60" x2="220" y2="360"
+                                                data-origem="teoria-da-probabilidade" data-fim="big-data" />
+                                            <line x1="150" y1="60" x2="220" y2="510"
+                                                data-origem="teoria-da-probabilidade" data-fim="computacao-em-nuvem" />
+                                            <line x1="150" y1="60" x2="220" y2="660"
+                                                data-origem="teoria-da-probabilidade"
+                                                data-fim="gestao-agil-de-projetos" />
+                                            <line x1="150" y1="60" x2="220" y2="810"
+                                                data-origem="teoria-da-probabilidade" data-fim="projeto-aplicado-3" />
+
+                                            <path class="pre-req" d="M 150 60 l 30 -75 l 640 0 l 60 75"
+                                                data-origem="teoria-da-probabilidade" data-fim="teoria-da-computacao">
+                                            </path>
+                                                <!-- <path class="pre-req" d="M 635 275 L 665 200 L 1305 200L 1365 275"
+                                            data-origem="teoria-da-probabilidade" data-fim="teoria-da-computacao">
+                                        </path> -->
+
+
+                                            <rect id="teoria-da-probabilidade" class="curriculo__matematica node-rect"
+                                                x="0" y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="calculo-1" />
+                                            <use href="#icone_monitoring" x="0" y="0" class="icone" />
+                                            <text id="teoria-da-probabilidade_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Teoria da</tspan>
+                                                <tspan x="75" dy="1.3em">Probabilidade</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,215)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="calculo-2"
+                                                data-fim="estatistica-1" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="calculo-2" data-fim="engenharia-de-dados-mlops" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="calculo-2" data-fim="big-data" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="calculo-2"
+                                                data-fim="computacao-em-nuvem" />
+                                            <line x1="150" y1="60" x2="220" y2="510" data-origem="calculo-2"
+                                                data-fim="gestao-agil-de-projetos" />
+                                            <line x1="150" y1="60" x2="220" y2="660" data-origem="calculo-2"
+                                                data-fim="projeto-aplicado-3" />
+
+                                               <path class="pre-req" d="M 150 60 l 60 -235 l 175 0 l 55 75"
+                                            data-origem="calculo-2" data-fim="teoria-de-grafos"></path>
+
+                                               <!-- <path class="pre-req" d="M 635 425 L 695 190 L 870 190 925 125"
+                                            data-origem="calculo-2" data-fim="teoria-de-grafos"></path>
+ -->
+
+                                            <rect id="calculo-2" class="curriculo__matematica node-rect" x="0" y="0"
+                                                width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="calculo-1" />
+                                            <use href="#icone_function" x="0" y="0" class="icone" />
+                                            <text id="calculo-2_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Cálculo II</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,365)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="banco-de-dados-2"
+                                                data-fim="estatistica-1" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="-90"
+                                                data-origem="banco-de-dados-2" data-fim="engenharia-de-dados-mlops" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="banco-de-dados-2" data-fim="big-data" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="banco-de-dados-2"
+                                                data-fim="computacao-em-nuvem" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="banco-de-dados-2"
+                                                data-fim="gestao-agil-de-projetos" />
+                                            <line x1="150" y1="60" x2="220" y2="510" data-origem="banco-de-dados-2"
+                                                data-fim="projeto-aplicado-3" />
+
+                                            <path class="pre-req" d="M 150 60 l 45 -375 l 435 0 l 30 75"
+                                            data-origem="banco-de-dados-2" data-fim="bd-multidimensionais"></path>
+                                            <!-- <path class="pre-req" d="M 635 425 L 680 50 L 1115 50 L 1145 125"
+                                            data-origem="banco-de-dados-2" data-fim="bd-multidimensionais"></path> -->
+                                            <path class="pre-req" d="M 150 60 l 55 225 l 425 0 l 30 -75"
+                                            data-origem="banco-de-dados-2" data-fim="mineracao-de-dados"></path>
+                                            <!-- <path class="pre-req" d="M 635 425 L 690 650 L 1115 650L 1145 575"
+                                            data-origem="banco-de-dados-2" data-fim="mineracao-de-dados"></path> -->
+
+
+                                            <rect id="banco-de-dados-2" class="curriculo__base-comum node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="banco-de-dados-1" />
+                                            <use href="#icone_code" x="0" y="0" class="icone" />
+                                            <text id="banco-de-dados-2_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Banco de</tspan>
+                                                <tspan x="75" dy="1.3em">Dados II</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,515)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-390"
+                                                data-origem="bi-e-data-visualization" data-fim="estatistica-1" />
+                                            <line x1="150" y1="60" x2="220" y2="-240"
+                                                data-origem="bi-e-data-visualization"
+                                                data-fim="engenharia-de-dados-mlops" />
+                                            <line x1="150" y1="60" x2="220" y2="-90"
+                                                data-origem="bi-e-data-visualization" data-fim="big-data" />
+                                            <line x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="bi-e-data-visualization" data-fim="computacao-em-nuvem" />
+                                            <line x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="bi-e-data-visualization"
+                                                data-fim="gestao-agil-de-projetos" />
+                                            <line x1="150" y1="60" x2="220" y2="360"
+                                                data-origem="bi-e-data-visualization" data-fim="projeto-aplicado-3" />
+
+
+                                            <rect id="bi-e-data-visualization" class="curriculo__especifico node-rect"
+                                                x="0" y="0" width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_analytics" x="0" y="0" class="icone" />
+                                            <text id="bi-e-data-visualization_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">BI e Data</tspan>
+                                                <tspan x="75" dy="1.3em">Visualization</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,665)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-540" data-origem="eletiva-1"
+                                                data-fim="estatistica-1" />
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="eletiva-1"
+                                                data-fim="engenharia-de-dados-mlops" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="eletiva-1"
+                                                data-fim="big-data" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="eletiva-1"
+                                                data-fim="computacao-em-nuvem" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="eletiva-1"
+                                                data-fim="gestao-agil-de-projetos" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="eletiva-1"
+                                                data-fim="projeto-aplicado-3" />
+
+                                            <rect id="eletiva-1" class="curriculo__transversal node-rect" x="0" y="0"
+                                                width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_groups" x="0" y="0" class="icone" />
+                                            <text id="eletiva-1_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Eletiva</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,815)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-690" data-origem="projeto-aplicado-2"
+                                                data-fim="estatistica-1" />
+                                            <line x1="150" y1="60" x2="220" y2="-540" data-origem="projeto-aplicado-2"
+                                                data-fim="engenharia-de-dados-mlops" />
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="projeto-aplicado-2"
+                                                data-fim="big-data" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="projeto-aplicado-2"
+                                                data-fim="computacao-em-nuvem" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="projeto-aplicado-2"
+                                                data-fim="gestao-agil-de-projetos" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="projeto-aplicado-2" data-fim="projeto-aplicado-3" />
+
+                                            <rect id="projeto-aplicado-2" class="curriculo__extensao node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="projeto-aplicado-1" />
+                                            <use href="#icone_domain" x="0" y="0" class="icone" />
+                                            <text id="projeto-aplicado-2_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Projeto</tspan>
+                                                <tspan x="75" dy="1.3em">Aplicado II</tspan>
+                                            </text>
+                                        </g>
+
+                                    </g>
+                                    <g id="fase4" transform="translate(705,0)" data-x="705">
+
+                                        <g transform="translate(0,65)">
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="estatistica-1"
+                                                data-fim="teoria-de-grafos" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="estatistica-1" data-fim="machine-learning" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="360"
+                                                data-origem="estatistica-1" data-fim="estatistica-2" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="510"
+                                                data-origem="estatistica-1" data-fim="analise-de-series" />
+                                            <line x1="150" y1="60" x2="220" y2="660" data-origem="estatistica-1"
+                                                data-fim="eletiva-2" />
+                                            <line x1="150" y1="60" x2="220" y2="810" data-origem="estatistica-1"
+                                                data-fim="projeto-aplicado-4" />
+
+                                            <path class="pre-req" d="M 150 60 l 45 75 l 435 0 l 30 85"
+                                            data-origem="estatistica-1" data-fim="teoria-da-computacao"></path>
+                                            <!-- <path class="pre-req" d="M 855 125 L 900 190 L 1335 190L 1365 275"
+                                            data-origem="estatistica-1" data-fim="teoria-da-computacao"></path> -->
+
+                                            <rect id="estatistica-1" class="curriculo__matematica node-rect" x="0" y="0"
+                                                width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="pre-calculo" />
+                                            <use href="#icone_monitoring" x="0" y="0" class="icone" />
+                                            <text id="estatistica-1_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Estatística I</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,215)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-90"
+                                                data-origem="engenharia-de-dados-mlops" data-fim="teoria-de-grafos" />
+                                            <line x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="engenharia-de-dados-mlops" data-fim="machine-learning" />
+                                            <line x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="engenharia-de-dados-mlops" data-fim="estatistica-2" />
+                                            <line x1="150" y1="60" x2="220" y2="360"
+                                                data-origem="engenharia-de-dados-mlops" data-fim="analise-de-series" />
+                                            <line x1="150" y1="60" x2="220" y2="510"
+                                                data-origem="engenharia-de-dados-mlops" data-fim="eletiva-2" />
+                                            <line x1="150" y1="60" x2="220" y2="660"
+                                                data-origem="engenharia-de-dados-mlops" data-fim="projeto-aplicado-4" />
+
+                                            <rect id="engenharia-de-dados-mlops" class="curriculo__especifico node-rect"
+                                                x="0" y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="banco-de-dados-2" />
+                                            <use href="#icone_neural-network" x="0" y="0" class="icone" />
+                                            <text id="engenharia-de-dados-mlops_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Eng. de Dados</tspan>
+                                                <tspan x="75" dy="1.3em">e MLOps</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,365)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="big-data"
+                                                data-fim="teoria-de-grafos" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="big-data"
+                                                data-fim="machine-learning" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="big-data"
+                                                data-fim="estatistica-2" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="big-data"
+                                                data-fim="analise-de-series" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="big-data"
+                                                data-fim="eletiva-2" />
+                                            <line x1="150" y1="60" x2="922205" y2="510" data-origem="big-data"
+                                                data-fim="projeto-aplicado-4" />
+
+                                            <rect id="big-data" class="curriculo__especifico node-rect" x="0" y="0"
+                                                width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="banco-de-dados-2" />
+                                            <use href="#icone_analytics" x="0" y="0" class="icone" />
+                                            <text id="big-data_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Big Data</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,515)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="computacao-em-nuvem"
+                                                data-fim="teoria-de-grafos" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="computacao-em-nuvem"
+                                                data-fim="machine-learning" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="computacao-em-nuvem"
+                                                data-fim="estatistica-2" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="computacao-em-nuvem"
+                                                data-fim="analise-de-series" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="computacao-em-nuvem"
+                                                data-fim="eletiva-2" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="computacao-em-nuvem"
+                                                data-fim="projeto-aplicado-4" />
+
+                                            <rect id="computacao-em-nuvem" class="curriculo__especifico node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="arquitetura-so-e-redes" />
+                                            <use href="#icone_analytics" x="0" y="0" class="icone" />
+                                            <text id="computacao-em-nuvem_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Computação</tspan>
+                                                <tspan x="75" dy="1.3em">em Nuvem</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,665)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-540"
+                                                data-origem="gestao-agil-de-projetos" data-fim="teoria-de-grafos" />
+                                            <line x1="150" y1="60" x2="220" y2="-390"
+                                                data-origem="gestao-agil-de-projetos" data-fim="machine-learning" />
+                                            <line x1="150" y1="60" x2="220" y2="-240"
+                                                data-origem="gestao-agil-de-projetos" data-fim="estatistica-2" />
+                                            <line x1="150" y1="60" x2="220" y2="-90"
+                                                data-origem="gestao-agil-de-projetos" data-fim="analise-de-series" />
+                                            <line x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="gestao-agil-de-projetos" data-fim="eletiva-2" />
+                                            <line x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="gestao-agil-de-projetos" data-fim="projeto-aplicado-4" />
+
+                                            <rect id="gestao-agil-de-projetos" class="curriculo__transversal node-rect"
+                                                x="0" y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="engenharia-de-software" />
+                                            <use href="#icone_groups" x="0" y="0" class="icone" />
+                                            <text id="gestao-agil-de-projetos_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Gestão Ágil</tspan>
+                                                <tspan x="75" dy="1.3em">de Projetos</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,815)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-690" data-origem="projeto-aplicado-3"
+                                                data-fim="teoria-de-grafos" />
+                                            <line x1="150" y1="60" x2="220" y2="-540" data-origem="projeto-aplicado-3"
+                                                data-fim="machine-learning" />
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="projeto-aplicado-3"
+                                                data-fim="estatistica-2" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="projeto-aplicado-3"
+                                                data-fim="analise-de-series" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="projeto-aplicado-3"
+                                                data-fim="eletiva-2" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="projeto-aplicado-3" data-fim="projeto-aplicado-4" />
+
+                                            <rect id="projeto-aplicado-3" class="curriculo__extensao node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="projeto-aplicado-2" />
+                                            <use href="#icone_domain" x="0" y="0" class="icone" />
+                                            <text id="projeto-aplicado-3_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Projeto</tspan>
+                                                <tspan x="75" dy="1.3em">Aplicado III</tspan>
+                                            </text>
+                                        </g>
+
+                                    </g>
+                                    <g id="fase5" transform="translate(925,0)" data-x="925">
+
+                                        <g transform="translate(0,65)">
+
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="teoria-de-grafos"
+                                                data-fim="bd-multidimensionais" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="teoria-de-grafos"
+                                                data-fim="deep-learning" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="teoria-de-grafos"
+                                                data-fim="programacao-distribuida-com-gpu" />
+                                            <line x1="150" y1="60" x2="220" y2="510" data-origem="teoria-de-grafos"
+                                                data-fim="mineracao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="660" data-origem="teoria-de-grafos"
+                                                data-fim="transformacao-digital" />
+                                            <line x1="150" y1="60" x2="220" y2="810" data-origem="teoria-de-grafos"
+                                                data-fim="projeto-aplicado-5" />
+
+                                            <rect id="teoria-de-grafos" class="curriculo__especifico node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="calculo-2" />
+                                            <use href="#icone_graph" x="0" y="0" class="icone" />
+                                            <text id="teoria-de-grafos_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Teoria de</tspan>
+                                                <tspan x="75" dy="1.3em">Grafos</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,215)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="machine-learning"
+                                                data-fim="bd-multidimensionais" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="machine-learning" data-fim="deep-learning" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="machine-learning"
+                                                data-fim="programacao-distribuida-com-gpu" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="machine-learning"
+                                                data-fim="mineracao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="510" data-origem="machine-learning"
+                                                data-fim="transformacao-digital" />
+                                            <line x1="150" y1="60" x2="220" y2="660" data-origem="machine-learning"
+                                                data-fim="projeto-aplicado-5" />
+
+
+                                            <rect id="machine-learning" class="curriculo__especifico node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="estatistica-1,algoritmos-e-programacao" />
+                                            <use href="#icone_neural-network" x="0" y="0" class="icone" />
+                                            <text id="machine-learning_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Machine</tspan>
+                                                <tspan x="75" dy="1.3em">Learning</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,365)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="estatistica-2"
+                                                data-fim="bd-multidimensionais" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="-90"
+                                                data-origem="estatistica-2" data-fim="deep-learning" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="estatistica-2"
+                                                data-fim="programacao-distribuida-com-gpu" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="estatistica-2"
+                                                data-fim="mineracao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="estatistica-2"
+                                                data-fim="transformacao-digital" />
+                                            <line x1="150" y1="60" x2="220" y2="510" data-origem="estatistica-2"
+                                                data-fim="projeto-aplicado-5" />
+
+                                            <rect id="estatistica-2" class="curriculo__matematica node-rect" x="0" y="0"
+                                                width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="estatistica-1" />
+                                            <use href="#icone_monitoring" x="0" y="0" class="icone" />
+                                            <text id="estatistica-2_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Estatística II</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,515)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="analise-de-series"
+                                                data-fim="bd-multidimensionais" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="analise-de-series"
+                                                data-fim="deep-learning" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="analise-de-series"
+                                                data-fim="programacao-distribuida-com-gpu" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="analise-de-series"
+                                                data-fim="mineracao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="analise-de-series"
+                                                data-fim="transformacao-digital" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="analise-de-series"
+                                                data-fim="projeto-aplicado-5" />
+
+                                            <rect id="analise-de-series" class="curriculo__matematica node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="estatistica-1,algebra-linear-e-geometria-analitica" />
+                                            <use href="#icone_monitoring" x="0" y="0" class="icone" />
+                                            <text id="analise-de-series_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Análise de</tspan>
+                                                <tspan x="75" dy="1.3em">Séries</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,665)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-540" data-origem="eletiva-2"
+                                                data-fim="bd-multidimensionais" />
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="eletiva-2"
+                                                data-fim="deep-learning" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="eletiva-2"
+                                                data-fim="programacao-distribuida-com-gpu" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="eletiva-2"
+                                                data-fim="mineracao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="eletiva-2"
+                                                data-fim="transformacao-digital" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="eletiva-2"
+                                                data-fim="projeto-aplicado-5" />
+
+                                            <rect id="eletiva-2" class="curriculo__transversal node-rect" x="0" y="0"
+                                                width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_groups" x="0" y="0" class="icone" />
+                                            <text id="eletiva-2_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Eletiva</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,815)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-690" data-origem="projeto-aplicado-4"
+                                                data-fim="bd-multidimensionais" />
+                                            <line x1="150" y1="60" x2="220" y2="-540" data-origem="projeto-aplicado-4"
+                                                data-fim="deep-learning" />
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="projeto-aplicado-4"
+                                                data-fim="programacao-distribuida-com-gpu" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="projeto-aplicado-4"
+                                                data-fim="mineracao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="projeto-aplicado-4"
+                                                data-fim="transformacao-digital" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="projeto-aplicado-4" data-fim="projeto-aplicado-5" />
+
+                                            <rect id="projeto-aplicado-4" class="curriculo__extensao node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="projeto-aplicado-3" />
+                                            <use href="#icone_domain" x="0" y="0" class="icone" />
+                                            <text id="projeto-aplicado-4_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Projeto</tspan>
+                                                <tspan x="75" dy="1.3em">Aplicado IV</tspan>
+                                            </text>
+                                        </g>
+                                    </g>
+                                    <g id="fase6" transform="translate(1145,0)" data-x="1145">
+
+                                        <g transform="translate(0,65)">
+
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="bd-multidimensionais"
+                                                data-fim="iniciacao-de-projetos-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="bd-multidimensionais"
+                                                data-fim="teoria-da-computacao" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="bd-multidimensionais"
+                                                data-fim="otimizacao-e-integracao-de-modelos" />
+                                            <line x1="150" y1="60" x2="220" y2="510" data-origem="bd-multidimensionais"
+                                                data-fim="visao-computacional" />
+                                            <line x1="150" y1="60" x2="220" y2="660" data-origem="bd-multidimensionais"
+                                                data-fim="etica-e-legislacao" />
+                                            <line x1="150" y1="60" x2="220" y2="810" data-origem="bd-multidimensionais"
+                                                data-fim="projeto-aplicado-6" />
+
+                                            <rect id="bd-multidimensionais" class="curriculo__especifico node-rect"
+                                                x="0" y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="banco-de-dados-2" />
+                                            <use href="#icone_analytics" x="0" y="0" class="icone" />
+                                            <text id="bd-multidimensionais_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">BD</tspan>
+                                                <tspan x="75" dy="1.3em">Multidimensionais</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,215)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="deep-learning"
+                                                data-fim="iniciacao-de-projetos-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="deep-learning"
+                                                data-fim="teoria-da-computacao" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="deep-learning"
+                                                data-fim="otimizacao-e-integracao-de-modelos" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="360"
+                                                data-origem="deep-learning" data-fim="visao-computacional" />
+                                            <line x1="150" y1="60" x2="220" y2="510" data-origem="deep-learning"
+                                                data-fim="etica-e-legislacao" />
+                                            <line x1="150" y1="60" x2="220" y2="660" data-origem="deep-learning"
+                                                data-fim="projeto-aplicado-6" />
+
+                                            <path class="pre-req" d="M 150 60 l 30 225 l 230 0 l 30 75"
+                                            data-origem="deep-learning" data-fim="pln"></path>
+                                            <!-- <path class="pre-req" d="M 1295 275 L 1325 500 L 1555 500L 1585 575" 
+                                            data-origem="deep-learning" data-fim="pln"></path>-->
+
+
+
+                                            <rect id="deep-learning" class="curriculo__especifico node-rect" x="0" y="0"
+                                                width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="estatistica-2,machine-learning" />
+                                            <use href="#icone_neural-network" x="0" y="0" class="icone" />
+                                            <text id="deep-learning_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Deep</tspan>
+                                                <tspan x="75" dy="1.3em">Learning</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,365)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-240"
+                                                data-origem="programacao-distribuida-com-gpu"
+                                                data-fim="iniciacao-de-projetos-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="-90"
+                                                data-origem="programacao-distribuida-com-gpu"
+                                                data-fim="teoria-da-computacao" />
+                                            <line x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="programacao-distribuida-com-gpu"
+                                                data-fim="otimizacao-e-integracao-de-modelos" />
+                                            <line x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="programacao-distribuida-com-gpu"
+                                                data-fim="visao-computacional" />
+                                            <line x1="150" y1="60" x2="220" y2="360"
+                                                data-origem="programacao-distribuida-com-gpu"
+                                                data-fim="etica-e-legislacao" />
+                                            <line x1="150" y1="60" x2="220" y2="510"
+                                                data-origem="programacao-distribuida-com-gpu"
+                                                data-fim="projeto-aplicado-6" />
+
+                                            <rect id="programacao-distribuida-com-gpu"
+                                                class="curriculo__especifico node-rect" x="0" y="0" width="150"
+                                                height="120" rx="60" ry="60"
+                                                data-pre-requisito="algoritmos-e-programacao,arquitetura-so-e-redes" />
+                                            <use href="#icone_graph" x="0" y="0" class="icone" />
+                                            <text id="programacao-distribuida-com-gpu_label" class="node-text" x="75"
+                                                y="60">
+                                                <tspan x="75" dy="-0.65em">Prog. Distribuída</tspan>
+                                                <tspan x="75" dy="1.3em">com GPU</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,515)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="mineracao-de-dados"
+                                                data-fim="iniciacao-de-projetos-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="mineracao-de-dados"
+                                                data-fim="teoria-da-computacao" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="mineracao-de-dados"
+                                                data-fim="otimizacao-e-integracao-de-modelos" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="mineracao-de-dados"
+                                                data-fim="visao-computacional" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="mineracao-de-dados"
+                                                data-fim="etica-e-legislacao" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="mineracao-de-dados"
+                                                data-fim="projeto-aplicado-6" />
+
+                                            <rect id="mineracao-de-dados" class="curriculo__especifico node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="banco-de-dados-2" />
+                                            <use href="#icone_analytics" x="0" y="0" class="icone" />
+                                            <text id="mineracao-de-dados_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Mineração</tspan>
+                                                <tspan x="75" dy="1.3em">de Dados</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,665)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-540"
+                                                data-origem="transformacao-digital"
+                                                data-fim="iniciacao-de-projetos-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="-390"
+                                                data-origem="transformacao-digital" data-fim="teoria-da-computacao" />
+                                            <line x1="150" y1="60" x2="220" y2="-240"
+                                                data-origem="transformacao-digital"
+                                                data-fim="otimizacao-e-integracao-de-modelos" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="transformacao-digital"
+                                                data-fim="visao-computacional" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="transformacao-digital"
+                                                data-fim="etica-e-legislacao" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="transformacao-digital"
+                                                data-fim="projeto-aplicado-6" />
+
+                                            <rect id="transformacao-digital" class="curriculo__transversal node-rect"
+                                                x="0" y="0" width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_groups" x="0" y="0" class="icone" />
+                                            <text id="transformacao-digital_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Transformação</tspan>
+                                                <tspan x="75" dy="1.3em">Digital</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,815)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-690" data-origem="projeto-aplicado-5"
+                                                data-fim="iniciacao-de-projetos-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="-540" data-origem="projeto-aplicado-5"
+                                                data-fim="teoria-da-computacao" />
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="projeto-aplicado-5"
+                                                data-fim="otimizacao-e-integracao-de-modelos" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="projeto-aplicado-5"
+                                                data-fim="visao-computacional" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="projeto-aplicado-5"
+                                                data-fim="etica-e-legislacao" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="projeto-aplicado-5" data-fim="projeto-aplicado-6" />
+
+                                            <rect id="projeto-aplicado-5" class="curriculo__extensao node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="projeto-aplicado-4" />
+                                            <use href="#icone_domain" x="0" y="0" class="icone" />
+                                            <text id="projeto-aplicado-5_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Projeto</tspan>
+                                                <tspan x="75" dy="1.3em">Aplicado V</tspan>
+                                            </text>
+                                        </g>
+                                    </g>
+                                    <g id="fase7" transform="translate(1365,0)" data-x="1365">
+                                        <g transform="translate(0,65)">
+
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="iniciacao-de-projetos-industriais"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="iniciacao-de-projetos-industriais"
+                                                data-fim="sistemas-roboticos-inteligentes" />
+                                            <line x1="150" y1="60" x2="220" y2="360"
+                                                data-origem="iniciacao-de-projetos-industriais"
+                                                data-fim="seguranca-para-protecao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="510"
+                                                data-origem="iniciacao-de-projetos-industriais" data-fim="eletiva-3" />
+                                            <line x1="150" y1="60" x2="220" y2="660"
+                                                data-origem="iniciacao-de-projetos-industriais"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="810"
+                                                data-origem="iniciacao-de-projetos-industriais"
+                                                data-fim="projeto-aplicado-7" />
+
+
+                                            <rect id="iniciacao-de-projetos-industriais"
+                                                class="curriculo__tcc node-rect" x="0" y="0" width="150" height="120"
+                                                rx="60" ry="60" data-pre-requisito="arquitetura-so-e-redes" />
+                                            <use href="#icone_school" x="0" y="0" class="icone" />
+                                            <text id="iniciacao-de-projetos-industriais_label" class="node-text" x="75"
+                                                y="60">
+                                                <tspan x="75" dy="-0.65em">Iniciação de</tspan>
+                                                <tspan x="75" dy="1.3em">Proj. Industriais</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,215)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="teoria-da-computacao"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="teoria-da-computacao"
+                                                data-fim="sistemas-roboticos-inteligentes" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="teoria-da-computacao"
+                                                data-fim="seguranca-para-protecao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="teoria-da-computacao"
+                                                data-fim="eletiva-3" />
+                                            <line x1="150" y1="60" x2="220" y2="510" data-origem="teoria-da-computacao"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="660" data-origem="teoria-da-computacao"
+                                                data-fim="projeto-aplicado-7" />
+
+                                            <rect id="teoria-da-computacao" class="curriculo__especifico node-rect"
+                                                x="0" y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="arquitetura-so-e-redes,teoria-da-probabilidade,estatistica-1" />
+                                            <use href="#icone_graph" x="0" y="0" class="icone" />
+                                            <text id="teoria-da-computacao_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Teoria da</tspan>
+                                                <tspan x="75" dy="1.3em">Computação</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,365)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-240"
+                                                data-origem="otimizacao-e-integracao-de-modelos"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="-90"
+                                                data-origem="otimizacao-e-integracao-de-modelos"
+                                                data-fim="sistemas-roboticos-inteligentes" />
+                                            <line x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="otimizacao-e-integracao-de-modelos"
+                                                data-fim="seguranca-para-protecao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="210"
+                                                data-origem="otimizacao-e-integracao-de-modelos" data-fim="eletiva-3" />
+                                            <line x1="150" y1="60" x2="220" y2="360"
+                                                data-origem="otimizacao-e-integracao-de-modelos"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="510"
+                                                data-origem="otimizacao-e-integracao-de-modelos"
+                                                data-fim="projeto-aplicado-7" />
+
+                                            <rect id="otimizacao-e-integracao-de-modelos"
+                                                class="curriculo__especifico node-rect" x="0" y="0" width="150"
+                                                height="120" rx="60" ry="60" data-pre-requisito="deep-learning" />
+                                            <use href="#icone_neural-network" x="0" y="0" class="icone" />
+                                            <text id="otimizacao-e-integracao-de-modelos_label" class="node-text" x="75"
+                                                y="60">
+                                                <tspan x="75" dy="-0.65em">Otimização e</tspan>
+                                                <tspan x="75" dy="1.3em">Int. de Modelos</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,515)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="visao-computacional"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="visao-computacional"
+                                                data-fim="sistemas-roboticos-inteligentes" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="visao-computacional"
+                                                data-fim="seguranca-para-protecao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="visao-computacional"
+                                                data-fim="eletiva-3" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="visao-computacional"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="360" data-origem="visao-computacional"
+                                                data-fim="projeto-aplicado-7" />
+
+                                            <rect id="visao-computacional" class="curriculo__especifico node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="deep-learning" />
+                                            <use href="#icone_neural-network" x="0" y="0" class="icone" />
+                                            <text id="visao-computacional_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Visão</tspan>
+                                                <tspan x="75" dy="1.3em">Computacional</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,665)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-540" data-origem="etica-e-legislacao"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="etica-e-legislacao"
+                                                data-fim="sistemas-roboticos-inteligentes" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="etica-e-legislacao"
+                                                data-fim="seguranca-para-protecao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="etica-e-legislacao"
+                                                data-fim="eletiva-3" />
+                                            <line x1="150" y1="60" x2="220" y2="60" data-origem="etica-e-legislacao"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="210" data-origem="etica-e-legislacao"
+                                                data-fim="projeto-aplicado-7" />
+
+                                            <rect id="etica-e-legislacao" class="curriculo__transversal node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_groups" x="0" y="0" class="icone" />
+                                            <text id="etica-e-legislacao_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Ética e</tspan>
+                                                <tspan x="75" dy="1.3em">Legislação</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,815)">
+
+                                            <line x1="150" y1="60" x2="220" y2="-690" data-origem="projeto-aplicado-6"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line x1="150" y1="60" x2="220" y2="-540" data-origem="projeto-aplicado-6"
+                                                data-fim="sistemas-roboticos-inteligentes" />
+                                            <line x1="150" y1="60" x2="220" y2="-390" data-origem="projeto-aplicado-6"
+                                                data-fim="seguranca-para-protecao-de-dados" />
+                                            <line x1="150" y1="60" x2="220" y2="-240" data-origem="projeto-aplicado-6"
+                                                data-fim="eletiva-3" />
+                                            <line x1="150" y1="60" x2="220" y2="-90" data-origem="projeto-aplicado-6"
+                                                data-fim="desenvolvimento-de-solucoes-industriais" />
+                                            <line class='pre-req' x1="150" y1="60" x2="220" y2="60"
+                                                data-origem="projeto-aplicado-6" data-fim="projeto-aplicado-7" />
+
+                                            <rect id="projeto-aplicado-6" class="curriculo__extensao node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="projeto-aplicado-5" />
+                                            <use href="#icone_domain" x="0" y="0" class="icone" />
+                                            <text id="projeto-aplicado-6_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Projeto</tspan>
+                                                <tspan x="75" dy="1.3em">Aplicado VI</tspan>
+                                            </text>
+                                        </g>
+
+                                    </g>
+                                    <g id="fase8" transform="translate(1585,0)" data-x="1585">
+                                        <g transform="translate(0,65)">
+                                            <rect id="desenvolvimento-de-solucoes-industriais"
+                                                class="curriculo__tcc node-rect" x="0" y="0" width="150" height="120"
+                                                rx="60" ry="60"
+                                                data-pre-requisito="iniciacao-de-projetos-industriais,algoritmos-e-programacao" />
+                                            <use href="#icone_school" x="0" y="0" class="icone" />
+                                            <text id="desenvolvimento-de-solucoes-industriais_label" class="node-text"
+                                                x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Desenvolvimento de</tspan>
+                                                <tspan x="75" dy="1.3em">Soluções Industriais</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,215)">
+                                            <rect id="sistemas-roboticos-inteligentes"
+                                                class="curriculo__especifico node-rect" x="0" y="0" width="150"
+                                                height="120" rx="60" ry="60"
+                                                data-pre-requisito="algoritmos-e-programacao,arquitetura-so-e-redes" />
+                                            <use href="#icone_neural-network" x="0" y="0" class="icone" />
+                                            <text id="sistemas-roboticos-inteligentes_label" class="node-text" x="75"
+                                                y="60">
+                                                <tspan x="75" dy="-0.65em">Sistemas Robóticos</tspan>
+                                                <tspan x="75" dy="1.3em">Inteligentes</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,365)">
+                                            <rect id="seguranca-para-protecao-de-dados"
+                                                class="curriculo__especifico node-rect" x="0" y="0" width="150"
+                                                height="120" rx="60" ry="60" />
+                                            <use href="#icone_analytics" x="0" y="0" class="icone" />
+                                            <text id="seguranca-para-protecao-de-dados_label" class="node-text" x="75"
+                                                y="60">
+                                                <tspan x="75" dy="-0.65em">Segurança para</tspan>
+                                                <tspan x="75" dy="1.3em">Proteção de Dados</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,515)">
+                                            <rect id="pln" class="curriculo__especifico node-rect" x="0" y="0"
+                                                width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="deep-learning" />
+                                            <use href="#icone_neural-network" x="0" y="0" class="icone" />
+                                            <text id="pln_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">PLN e</tspan>
+                                                <tspan x="75" dy="1.3em">IA Generativa</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,665)">
+                                            <rect id="eletiva-3" class="curriculo__transversal node-rect" x="0" y="0"
+                                                width="150" height="120" rx="60" ry="60" />
+                                            <use href="#icone_groups" x="0" y="0" class="icone" />
+                                            <text id="eletiva-3_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Eletiva</tspan>
+                                            </text>
+                                        </g>
+
+                                        <g transform="translate(0,815)">
+                                            <rect id="projeto-aplicado-7" class="curriculo__extensao node-rect" x="0"
+                                                y="0" width="150" height="120" rx="60" ry="60"
+                                                data-pre-requisito="projeto-aplicado-6" />
+                                            <use href="#icone_domain" x="0" y="0" class="icone" />
+                                            <text id="projeto-aplicado-7_label" class="node-text" x="75" y="60">
+                                                <tspan x="75" dy="-0.65em">Projeto</tspan>
+                                                <tspan x="75" dy="1.3em">Aplicado VII</tspan>
+                                            </text>
+                                        </g>
+                                    </g>
+                                </g>
+                            </svg>
+                            <div>
+                            </div>
+                        </div>
+                        <div class="matriz-curricular__flex matriz-curricular__flex--medium-gap ">  
+                            <div class="legenda-icones legenda-icones__grid" style="grid-template-columns: 1fr 4fr 1fr 4fr 1fr 4fr;">
+                                <h3 style="grid-column:1/-1;">Eixos Temáticos</h3>
+                                <svg viewBox="0 0 30 30" width="20px" height="20px">
+                                    <use href="#icone__frame" class="icone curriculo__matematica" x="3" y="3"></use>
+                                </svg>
+                                <div>
+                                    Fundamentos Matemáticos
+                                </div>
+
+                                <svg viewBox="0 0 30 30" width="20px" height="20px">
+                                    <use href="#icone__frame" class="icone curriculo__base-comum" x="3" y="3"></use>
+                                </svg>
+                                <div>
+                                    Base Comum
+                                </div>
+
+                                <svg viewBox="0 0 30 30" width="20px" height="20px">
+                                    <use href="#icone__frame" class="icone curriculo__transversal" x="3" y="3">
+                                    </use>
+                                </svg>
+                                <div>
+                                    Conhecimentos Transversais
+                                </div>
+
+                                <svg viewBox="0 0 30 30" width="20px" height="20px">
+                                    <use href="#icone__frame" class="icone curriculo__extensao" x="3" y="3"></use>
+                                </svg>
+                                <div>
+                                    Currículo de Extensão
+                                </div>
+
+                                <svg viewBox="0 0 30 30" width="20px" height="20px">
+                                    <use href="#icone__frame" class="icone curriculo__especifico" x="3" y="3"></use>
+                                </svg>
+                                <div>
+                                    Conhecimentos Específicos
+                                </div>
+
+                                <svg viewBox="0 0 30 30" width="20px" height="20px">
+                                    <use href="#icone__frame" class="icone curriculo__tcc" x="3" y="3"></use>
+                                </svg>
+                                <div>
+                                    Trabalho de Conclusão de Curso
+                                </div>
+                            </div>
+                        
+                        <div class="legenda-icones legenda-icones__grid">
+                            <h3 style="grid-column:1/-1;">Áreas do Conhecimento</h3>
+                            <svg viewBox="0 0 24 24" width="30px" height="30px">
+                                <use href="#icone_code__symbol" class="icone icone__white" />
+                            </svg>
+                            <div>
+                                Computação Essencial
+                            </div>
+
+                            <svg viewBox="0 0 24 24" width="30px" height="30px">
+                                <use href="#icone_function__symbol" class="icone icone__white" />
+                            </svg>
+                            <div>
+                                Matemática
+                            </div>
+
+                            <svg viewBox="0 0 24 24" width="30px" height="30px">
+                                <use href="#icone_monitoring__symbol" class="icone icone__white" />
+                            </svg>
+                            <div>
+                                Estatística
+                            </div>
+
+
+                            <svg viewBox="0 0 24 24" width="30px" height="30px">
+                                <use href="#icone_groups__symbol" class="icone icone__white" />
+                            </svg>
+                            <div>
+                                Gestão e Governança
+                            </div>
+
+                            <svg viewBox="0 0 24 24" width="30px" height="30px">
+                                <use href="#icone_analytics__symbol" class="icone icone__white" />
+                            </svg>
+                            <div>
+                                Ciência de Dados
+                            </div>
+
+                            <svg viewBox="0 0 24 24" width="30px" height="30px">
+                                <use href="#icone_neural-network__symbol" class="icone icone__white" />
+                            </svg>
+                            <div>
+                                Inteligência Artificial
+                            </div>
+
+                            <svg viewBox="0 0 24 24" width="30px" height="30px">
+                                <use href="#icone_graph__symbol" class="icone icone__white" />
+                            </svg>
+                            <div>
+                                Ciência da Computação
+                            </div>
+
+                            <svg viewBox="0 0 24 24" width="30px" height="30px">
+                                <use href="#icone_domain__symbol" class="icone icone__white" />
+                            </svg>
+                            <div>
+                                Currículo de Extensão
+                            </div>
+                            <!-- <svg viewBox="0 0 60 60" width="30px" height="30px">
+                                <use href="#icone_school"  class="icone" />
+                            </svg>
+                            <div>
+                                Trabalho de Conclusão de Curso
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="curriculum-section">
+                <h2>Referências</h2>
+                <p>A matriz foi desenhada para remeter a uma Rede Neural, componente principal dos modelos de I.A.
+                    atuais</p>
+                <div>
+                    <figure>
+                        <img src="images/nn_2.png">
+                        <figcaption>Ilustração de rede neural. Cada conjunto de círculos representa uma camada de
+                            neurônios, conectada às camadas vizinhas pelas setas.
+                            Essa representação é a base para a construção da matriz temática e interativa.
+                        </figcaption>
+                    </figure>
+                    <figure>
+                        <img src="images/nn_1.png">
+                        <figcaption>Rede neural ilustrada no estilo esboço. Remove o ênfase dos neurônios e enfatiza as
+                            conexões entre camadas.
+                            Pode ser uma inspiração para o estilo estético
+                        </figcaption>
+                    </figure>
+                    <figure>
+                        <img src="images/matriz_cdia.png">
+                        <figcaption>Matriz do CDIA em formato padrão</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="images/matriz_cimatec.png">
+                        <figcaption>Matriz de ECA do Cimatec. A maior inspiração é a classificação das Unidades
+                            Curriculares através de ícones e cores.
+                            Os pré-requisitos ficam muito escondidos nessa representação. Também há excesso de
+                            informação nos quadros das U.Cs
+                        </figcaption>
+                    </figure>
+                    <figure>
+                        <img src="images/Matriz_computacao_IEC.png">
+                        <figcaption>Matriz de CC do IEC. Serve como inspiração de como <b>não</b> representar os
+                            pré-requiitos
+                        </figcaption>
+                    </figure>
+
+
+
+
+                </div>
+            </section>
+
+
+
+            <section id='modal-ementa' class="modal-overlay">
+                <div id="modal-content" class="modal-content">
+
+                    <button class="modal-close" id="fechar-modal-btn" aria-label="Fechar modal">&times;</button>
+
+                    <h2 id="modal-uc-titulo">(Nome da Unidade Curricular)</h2>
+
+                    <h3>Carga Horária</h3>
+                    <div class="modal__carga_horaria">
+                        <p><strong>Total:</strong> <span id="modal-uc-carga-horaria">(...)</span></p>
+                        <p><strong>Presencial:</strong> <span id="modal-uc-carga-horaria-presencial">(...)</span></p>
+                        <p><strong>EaD:</strong> <span id="modal-uc-carga-horaria-ead">(...)</span></p>
+                    </div>
+
+                    <h3>Objetivo Geral</h3>
+                    <div id="modal-uc-objetivo-geral">
+                        <p>(...)</p>
+                    </div>
+
+                    <div class="modal__capacidades-conhecimentos">
+                        <h3>Capacidades Básicas</h3>
+                        <h3>Conhecimentos</h3>
+                        <div id="modal-uc-capacidades-basicas">
+                            <ul>
+                                <li>(...)</li>
+                            </ul>
+                        </div>
+
+                        <div id="modal-uc-conhecimentos">
+                            <ul>
+                                <li>(...)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="website-footer">
+        <div class="container">
+            <p>&copy; 2025 UniSENAI-SC - Bacharelado em Ciência de Dados e Inteligência Artificial. Todos os direitos
+                reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Espera o DOM (layout da página) carregar completamente
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Armazena os elementos da modal ---
+            const modal = document.getElementById('modal-ementa');
+            const modalScrollable = document.getElementById('modal-content');
+            const modalBtnFechar = document.getElementById('fechar-modal-btn');
+
+            //Fecha modal com o esc
+            document.addEventListener('keydown', (e) => {
+                e.key == 'Escape' && modalBtnFechar.click()
+            })
+
+            // Elementos de conteúdo da modal (veja o HTML atualizado no Passo 3)
+            const modalTitulo = document.getElementById('modal-uc-titulo');
+            const modalCargaHoraria = document.getElementById('modal-uc-carga-horaria');
+            const modalCargaHorariaEaD = document.getElementById('modal-uc-carga-horaria-ead');
+            const modalCargaHorariaPresencial = document.getElementById('modal-uc-carga-horaria-presencial');
+            const modalObjetivo = document.getElementById('modal-uc-objetivo-geral');
+            const modalCapacidades = document.getElementById('modal-uc-capacidades-basicas');
+            const modalConhecimentos = document.getElementById('modal-uc-conhecimentos');
+
+            // --- Armazena os dados das ementas em memória ---
+            let ementaDoc = null;
+
+            fetch('ementa_cdia.html') // O nome do arquivo que você acabou de criar
+                .then(response => response.text())
+                .then(htmlText => {
+                    // Converte o texto HTML em um documento que podemos pesquisar
+                    const parser = new DOMParser();
+                    ementaDoc = parser.parseFromString(htmlText, 'text/html');
+                    console.log('Dados das ementas carregados com sucesso.');
+                })
+                .catch(err => {
+                    console.error('Falha ao carregar ementas-data.html:', err);
+                    alert('Erro: Não foi possível carregar os dados das ementas. Verifique o console.');
+                });
+            /**
+             * Função global para abrir e popular a modal.
+             * Você chamará esta função a partir do seu SVG interativo.
+             *
+             * Exemplo no SVG: 
+             * <g id="uc-pre-calculo" onclick="abrirModalEmenta('pre-calculo')">...</g>
+             */
+            window.abrirModalEmenta = function (ucId) {
+                if (!ementaDoc) {
+                    alert('Os dados das ementas ainda não foram carregados. Tente novamente em um segundo.');
+                    return;
+                }
+
+                // 1. Encontra o <div> com o ID da UC (ex: "pre-calculo") no arquivo de dados
+                const dataContainer = ementaDoc.getElementById(ucId);
+                if (!dataContainer) {
+                    console.error(`Ementa com ID "${ucId}" não encontrada em ementas-data.html`);
+                    return;
+                }
+                // 2. Popula a modal com os dados encontrados
+                // Usamos .querySelector() DENTRO do dataContainer
+                modalTitulo.innerHTML = dataContainer.querySelector('.uc__titulo')?.innerHTML || 'Título não encontrado';
+                modalCargaHoraria.innerHTML = (dataContainer.querySelector('.uc__carga_horaria')?.innerHTML || 'N/A');
+                modalCargaHorariaPresencial.innerHTML = (dataContainer.querySelector('.uc__carga_presencial')?.innerHTML || 'N/A');
+                modalCargaHorariaEaD.innerHTML = (dataContainer.querySelector('.uc__carga_ead')?.innerHTML || 'N/A');
+                modalObjetivo.innerHTML = dataContainer.querySelector('.uc__objetivo_geral')?.innerHTML || '<p>N/A</p>';
+                modalCapacidades.innerHTML = dataContainer.querySelector('.uc__capacidades_basicas')?.innerHTML || '<ul><li>N/A</li></ul>';
+                modalConhecimentos.innerHTML = dataContainer.querySelector('.uc__conhecimentos')?.innerHTML || '<ul><li>N/A</li></ul>';
+
+                // 3. Exibe a modal
+                modal.style.display = 'block';
+                modalScrollable.scrollTo(0, 0);
+            }
+            // --- Funções para Fechar a Modal ---
+            function fecharModal() {
+                modal.style.display = 'none';
+            }
+            // 1. Fechar ao clicar no botão 'X'
+            modalBtnFechar.addEventListener('click', fecharModal);
+            // 2. Fechar ao clicar fora do conteúdo (no overlay escuro)
+            modal.addEventListener('click', (event) => {
+                // Verifica se o clique foi no próprio overlay (a parte escura)
+                if (event.target === modal) {
+                    fecharModal();
+                }
+            });
+
+            for (const el of document.querySelectorAll('.node-rect')) {
+                el.addEventListener('mouseover', (e) => toggleSelectUC(e.currentTarget));
+                el.addEventListener('click', (e) => {
+                    abrirModalEmenta(e.currentTarget.id)
+                });
+            }
+
+        });
+    </script>
+</body>
+
+</html>

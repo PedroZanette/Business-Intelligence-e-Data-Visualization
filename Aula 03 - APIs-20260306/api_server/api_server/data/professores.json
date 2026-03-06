@@ -1,0 +1,14 @@
+[
+    {
+        "matricula":101,
+        "nome":"Alan Turing"
+    },
+    {
+        "matricula":102,
+        "nome":"Ada Lovelace"
+    },
+    {
+        "matricula":103,
+        "nome":"Grace Hopper"
+    }
+]

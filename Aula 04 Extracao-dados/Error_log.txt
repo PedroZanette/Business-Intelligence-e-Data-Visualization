@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\Users\Pedro Zanette\Documents\Faculdade\Business-Intelligence-e-Data-Visualization\Aula 04 Extracao-dados\scraper.py", line 122, in <module>
+    processa_pagina_noticia(url_base, noticia)
+  File "C:\Users\Pedro Zanette\Documents\Faculdade\Business-Intelligence-e-Data-Visualization\Aula 04 Extracao-dados\scraper.py", line 98, in processa_pagina_noticia
+    download_image(noticia.url_imagem, "imagens")
+  File "C:\Users\Pedro Zanette\Documents\Faculdade\Business-Intelligence-e-Data-Visualization\Aula 04 Extracao-dados\scraper.py", line 54, in download_image
+    with open(f"{path_prefix}/{nome_imagem}",'wb') as f:
+FileNotFoundError: [Errno 2] No such file or directory: 'imagens/54776184128_3bcde06b8f_c-1-960x540.webp'

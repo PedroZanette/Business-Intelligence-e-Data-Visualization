@@ -1,0 +1,22 @@
+[
+    {
+        "id":1,
+        "nome":"Algoritmos e Estrutura de Dados",
+        "professor_responsavel":101
+    },
+    {
+        "id":2,
+        "nome":"Banco de Dados",
+        "professor_responsavel":102
+    },
+    {
+        "id":3,
+        "nome":"Intelig\u00eancia Artificial",
+        "professor_responsavel":101
+    },
+    {
+        "id":4,
+        "nome":"Engenharia de Software",
+        "professor_responsavel":103
+    }
+]

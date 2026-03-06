@@ -1,0 +1,29 @@
+
+A API implementada nestes arquivos utiliza a biblioteca FastAPI como servidor HTTP.
+Utilizamos um dataframe pandas para simular um banco de dados na camada de persistência.
+
+# Instalação das Bibliotecas:
+
+Utilizando uma instalação global, ou um ambiente virtual (venv), instale a biblioteca pelo gerenciador `pip`:
+
+Usando a distribuição base (ou um terminal Anaconda):
+
+`python -m pip install --upgrade pip`
+
+`pip install "fastapi[standard]"`
+
+`pip install pandas`
+
+# Execução do Código:
+
+Para executar o código em modo de desenvolvimento, utilize o comando `fastapi dev`:
+
+`fastapi dev api.py`
+
+# Estrutura:
+
+O arquivo api.py é o ponto de entrada do código. 
+
+O fluxo de dados se dá na forma `api.py -> service.py -> persistence.py`
+
+Como apoio a construção dos recursos, os scripts `model.py`, `datagen.py`, `serialization.py` são utilizados para definir as classes, popular o dataframe de persistência e traduzir as classes para Json e vice-versa.
